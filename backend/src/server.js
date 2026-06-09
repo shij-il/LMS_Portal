@@ -17,7 +17,7 @@ const app = express();
 connectDB();
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: "https://lms-portal-bice-rho.vercel.app/",
   credentials: true
 }));
 
