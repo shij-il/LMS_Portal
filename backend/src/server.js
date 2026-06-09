@@ -20,7 +20,8 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://lms-portal-bice-rho.vercel.app"
+      "https://lms-portal-bice-rho.vercel.app",
+      "https://lms-portal-6sct9mzhh-muhammed-shijil-mk-s-projects.vercel.app"
     ],
     credentials: true
   })
