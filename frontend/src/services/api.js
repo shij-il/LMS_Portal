@@ -2,7 +2,7 @@ import axios from "axios";
 
 // CRITICAL FIX: was import.meta.env.VITE_API_URL which is undefined → caused ALL requests to fail
 const api = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_URL,
   timeout: 15000,
 });
 
