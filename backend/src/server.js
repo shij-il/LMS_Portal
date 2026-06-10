@@ -13,23 +13,24 @@ const uploadRoutes = require("./routes/uploadRoutes");
 const certificateRoutes = require("./routes/certificateRoutes");
 
 const app = express();
-
 connectDB();
 
 app.use(
   cors({
-    origin: true,
+    origin: ["http://localhost:5173", "http://localhost:3000"],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// Serve uploaded files statically
+// Serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-// Routes
+// API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/enrollments", enrollmentRoutes);
@@ -38,17 +39,25 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/certificate", certificateRoutes);
 
-app.get("/", (req, res) => {
-  res.json({ message: "LMS Portal API Running" });
-});
+app.get("/", (_req, res) =>
+  res.json({ message: "LMS Portal API Running ✅", version: "2.0" })
+);
+
+// 404
+app.use((req, res) =>
+  res
+    .status(404)
+    .json({ message: `Route ${req.method} ${req.url} not found` })
+);
 
 // Global error handler
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: "Internal Server Error", error: err.message });
+app.use((err, _req, res, _next) => {
+  console.error("Global error:", err.stack);
+  res.status(err.status || 500).json({ message: err.message || "Internal Server Error" });
 });
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`\n🚀 Server running → http://localhost:${PORT}`);
+  console.log(`📁 Uploads → http://localhost:${PORT}/uploads`);
 });

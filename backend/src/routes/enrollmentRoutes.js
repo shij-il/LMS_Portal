@@ -4,7 +4,7 @@ const {
   enrollCourse,
   getMyEnrollments,
   checkEnrollment,
-  unenroll
+  unenroll,
 } = require("../controllers/enrollmentController");
 const authMiddleware = require("../middleware/authMiddleware");
 

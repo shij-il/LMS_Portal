@@ -4,24 +4,36 @@ const Enrollment = require("../models/Enrollment");
 exports.updateProgress = async (req, res) => {
   try {
     const { courseId, percentage } = req.body;
-
-    if (!courseId || percentage === undefined) {
-      return res.status(400).json({ message: "courseId and percentage are required" });
+    if (!courseId) {
+      return res.status(400).json({ message: "Course ID is required" });
+    }
+    if (percentage === undefined || percentage === null) {
+      return res.status(400).json({ message: "Percentage is required" });
     }
 
-    const enrolled = await Enrollment.findOne({ student: req.user.id, course: courseId });
+    const pct = Math.min(100, Math.max(0, Number(percentage)));
+    if (isNaN(pct)) {
+      return res.status(400).json({ message: "Invalid percentage value" });
+    }
+
+    const enrolled = await Enrollment.findOne({
+      student: req.user.id,
+      course: courseId,
+    });
     if (!enrolled) {
-      return res.status(403).json({ message: "Not enrolled in this course" });
+      return res
+        .status(403)
+        .json({ message: "You must be enrolled to update progress" });
     }
 
     const progress = await Progress.findOneAndUpdate(
       { student: req.user.id, course: courseId },
-      { percentage: Math.min(100, Math.max(0, percentage)), lastUpdated: Date.now() },
+      { percentage: pct, lastUpdated: new Date() },
       { new: true, upsert: true }
-    ).populate("course", "title");
+    ).populate("course", "title category level");
 
-    // Mark enrollment as completed if 100%
-    if (percentage >= 100) {
+    // Auto-mark enrollment complete at 100%
+    if (pct >= 100) {
       await Enrollment.findOneAndUpdate(
         { student: req.user.id, course: courseId },
         { completedAt: new Date() }
@@ -30,14 +42,16 @@ exports.updateProgress = async (req, res) => {
 
     res.json(progress);
   } catch (error) {
+    console.error("updateProgress error:", error);
     res.status(500).json({ message: error.message });
   }
 };
 
+// My progress (student view)
 exports.getMyProgress = async (req, res) => {
   try {
     const progress = await Progress.find({ student: req.user.id })
-      .populate("course", "title description category level")
+      .populate("course", "title description category level instructor")
       .sort({ lastUpdated: -1 });
     res.json(progress);
   } catch (error) {
@@ -45,11 +59,12 @@ exports.getMyProgress = async (req, res) => {
   }
 };
 
+// Single course progress
 exports.getCourseProgress = async (req, res) => {
   try {
     const progress = await Progress.findOne({
       student: req.user.id,
-      course: req.params.courseId
+      course: req.params.courseId,
     });
     res.json(progress || { percentage: 0 });
   } catch (error) {

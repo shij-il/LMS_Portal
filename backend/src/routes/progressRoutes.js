@@ -3,7 +3,7 @@ const router = express.Router();
 const {
   updateProgress,
   getMyProgress,
-  getCourseProgress
+  getCourseProgress,
 } = require("../controllers/progressController");
 const authMiddleware = require("../middleware/authMiddleware");
 
