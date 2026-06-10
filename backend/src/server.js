@@ -17,10 +17,8 @@ connectDB();
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://lms-portal-bice-rho.vercel.app"],
+    origin: true,
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
